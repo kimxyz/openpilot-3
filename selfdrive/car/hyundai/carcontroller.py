@@ -44,13 +44,11 @@ def accel_hysteresis(accel, accel_steady):
   return accel, accel_steady
 
 def process_hud_alert(enabled, fingerprint, visual_alert, left_lane,
-                      right_lane, left_lane_depart, right_lane_depart, button_on):
+                      right_lane, left_lane_depart, right_lane_depart):
   sys_warning = (visual_alert == VisualAlert.steerRequired)
 
   # initialize to no line visible
   sys_state = 1
-  if not button_on:
-    lane_visible = 0
   if left_lane and right_lane or sys_warning:  #HUD alert only display when LKAS status is active
     if enabled or sys_warning:
       sys_state = 3
@@ -248,7 +246,7 @@ class CarController():
     spas_active = CS.spas_enabled and enabled and (self.spas_always or CS.out.vEgo < 7.0) # 25km/h
 
     # disable if steer angle reach 90 deg, otherwise mdps fault in some models
-    lkas_active = enabled and abs(CS.out.steeringAngle) < 90. and self.lkas_button_on and not spas_active
+    lkas_active = enabled and abs(CS.out.steeringAngle) < 90. and not spas_active
 
     if (( CS.out.leftBlinker and not CS.out.rightBlinker) or ( CS.out.rightBlinker and not CS.out.leftBlinker)) and CS.out.vEgo < 2 * CV.KPH_TO_MS: #< LANE_CHANGE_SPEED_MIN:
       self.lanechange_manual_timer = 10
@@ -281,8 +279,7 @@ class CarController():
 
     sys_warning, sys_state, left_lane_warning, right_lane_warning =\
       process_hud_alert(lkas_active, self.car_fingerprint, visual_alert,
-                        left_lane, right_lane, left_lane_depart, right_lane_depart,
-                        self.lkas_button_on)
+                        left_lane, right_lane, left_lane_depart, right_lane_depart)
 
     clu11_speed = CS.clu11["CF_Clu_Vanz"]
     enabled_speed = 38 if CS.is_set_speed_in_mph  else 55
